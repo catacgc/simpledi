@@ -19,17 +19,18 @@ Basic usage:
 
 """
 
+
 def auto(clz):
     return AutoProvider(clz)
+
 
 def instance(obj):
     return lambda container: obj
 
-def builder(clz, *dependencies):
-    return InstanceProvider(clz, dependencies)
 
 def cache(provider):
     return CacheInstanceProvider(provider)
+
 
 class Provider(object):
     """
@@ -58,32 +59,18 @@ class AutoProvider(Provider):
         # ignore self
         dependencies = argspec.args[1:]
 
-        return self.clz(*[container.get_instance(dependency, self.clz.__name__) for dependency in dependencies])
-
-
-class InstanceProvider(Provider):
-    """
-    A do-it yourself dependency builder where you have to specify the class,
-    and the list for the named dependencies that have to be passed to the constructor
-    """
-
-    def __init__(self, clz, dependencies=[]):
-        self.dependencies = dependencies
-        self.clz = clz
-
-    def __call__(self, container):
-        return self.clz(*[container.get_instance(dependency, self.clz.__name__) for dependency in self.dependencies])
+        return self.clz(*[container.get_instance(dependency) for dependency in dependencies])
 
 
 class ListInstanceProvider(Provider):
-    def __init__(self):
-        self.providers = []
+    def __init__(self, *providers):
+        self._providers = providers
 
-    def add(self, provider):
-        self.providers.append(provider)
+    def add(self, *providers):
+        self._providers.extend(providers)
 
     def __call__(self, container):
-        return map(lambda provider: provider(container), self.providers)
+        return map(lambda provider: provider(container), self._providers)
 
 
 class CacheInstanceProvider(Provider):
@@ -102,29 +89,48 @@ class CacheInstanceProvider(Provider):
 class Container(object):
     """Very simple dependency manager useful to manage constructor dependencies"""
 
-    providers = {}
+    def __init__(self):
+        self._providers = {}
+        self._call_stack = []
 
-    def __setattr__(self, key, value):
-        self.bind(key, value)
+    def __setattr__(self, name, provider):
+        if name in set(['_providers', '_call_stack']):
+            self.__dict__[name] = provider
+            return
+
+        if not hasattr(provider, '__call__'):
+            raise Exception('A dependency provider must be callable and receive exactly one argument: the container')
+
+        self._providers[name] = provider
 
     def __getattr__(self, name):
+        return self.get_instance(name)
+
+    def get_instance(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
 
-        return self.get_instance(name)
+        if name not in self._providers:
+            raise Exception('Dependency {name} is not defined: {call_stack}; bind one '
+                            'using appContainer.{name} = ...'
+                            .format(name=name, call_stack=format_call_stack(self._call_stack + [name + " (missing)"])))
 
-    def bind(self, name, provider):
-        if not hasattr(provider, '__call__'):
-            raise Exception("A dependency provider must be callable and receive exactly one argument: the container")
+        if name in self._call_stack:
+            raise Exception('Cyclic dependency chain detected: {call_stack}'
+                            .format(call_stack=format_call_stack(self._call_stack + [name + " (cycle)"])))
 
-        self.providers[name] = provider
+        return self._providers[name](self.clone(name))
 
     def get_provider(self, name):
-        return self.providers[name]
+        return self._providers[name]
 
-    def get_instance(self, name, caller=None):
-        if name not in self.providers:
-            raise Exception("Dependency {caller}.{name} is not defined; bind one "
-                            "using appContainer.{name} = ...".format(name=name, caller=caller))
+    def clone(self, name):
+        container = Container()
+        container._call_stack = self._call_stack + [name]
+        container._providers = self._providers
 
-        return self.providers[name](self)
+        return container
+
+
+def format_call_stack(call_stack):
+    return " -> ".join(call_stack)

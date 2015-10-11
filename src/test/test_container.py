@@ -87,7 +87,7 @@ def test_missing_dependency():
         container.foo
         pytest.fail("Should not be here")
     except Exception as e:
-        assert 'foo -> bar -> baz -> a_missing_dependency (missing)' in e.message
+        assert 'foo -> bar -> baz -> a_missing_dependency (missing)' in str(e)
 
 
 def test_cyclic_dependencies():
@@ -99,7 +99,7 @@ def test_cyclic_dependencies():
         container.bar
         pytest.fail('Should not be here')
     except Exception as e:
-        assert 'bar -> foo -> bar (cycle)' in e.message
+        assert 'bar -> foo -> bar (cycle)' in str(e)
 
 
 def test_wrong_provider_type():

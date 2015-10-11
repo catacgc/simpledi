@@ -1,3 +1,5 @@
+![build status](https://travis-ci.org/catacgc/simpledi.svg)
+
 Simple, small dependency container for python
 
 ## Basics

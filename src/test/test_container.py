@@ -77,6 +77,15 @@ def test_list_instance_provider():
     assert container.foo.sum() == 6
 
 
+def test_empty_list_instance_provider():
+    container = Container()
+    container.members = ListInstanceProvider()
+    container.get_provider('members').add(instance(1))
+    container.get_provider('members').add(instance(2))
+
+    assert container.members == [1, 2]
+
+
 def test_missing_dependency():
     container = Container()
     container.foo = lambda c: c.bar

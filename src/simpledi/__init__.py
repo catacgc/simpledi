@@ -64,7 +64,7 @@ class AutoProvider(Provider):
 
 class ListInstanceProvider(Provider):
     def __init__(self, *providers):
-        self._providers = providers
+        self._providers = list(providers)
 
     def add(self, *providers):
         self._providers.extend(providers)

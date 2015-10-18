@@ -70,7 +70,7 @@ class ListInstanceProvider(Provider):
         self._providers.extend(providers)
 
     def __call__(self, container):
-        return map(lambda provider: provider(container), self._providers)
+        return list(map(lambda provider: provider(container), self._providers))
 
 
 class CacheInstanceProvider(Provider):

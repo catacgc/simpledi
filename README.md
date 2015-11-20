@@ -89,7 +89,8 @@ class ImageProcessor(object):
         self.image_processors = image_processors
         
     def process(self, imageurl):
-        self.image_processors.process(imageurl)
+        for processor in self.image_processors:
+            self.image_processors.process(imageurl)
 ```
 
 Now to wire everything up and allow for a an extension point in our application we can do:

@@ -1,4 +1,4 @@
-from inspect import getargspec
+from inspect import getfullargspec
 
 """
 A basic implementation of a dependency injection container
@@ -55,7 +55,7 @@ class AutoProvider(Provider):
         if '__init__' not in self.clz.__dict__:
             return self.clz()
 
-        argspec = getargspec(self.clz.__init__)
+        argspec = getfullargspec(self.clz.__init__)
         # ignore self
         dependencies = argspec.args[1:]
 

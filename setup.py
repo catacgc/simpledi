@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='simpledi',
-    version='0.4.0',
+    version='0.4.1',
     description='Simple dependency injection container for python',
     url='https://github.com/catacgc/simpledi',
     author='Catalin Costache',

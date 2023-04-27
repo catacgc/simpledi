@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/catacgc/simpledi.svg?branch=master)](https://travis-ci.org/catacgc/simpledi)
-
 Simple, small dependency injection container for python
 
 ## Basics
